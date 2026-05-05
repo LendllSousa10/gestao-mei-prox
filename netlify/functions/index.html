@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestão MEI Pro X — Sistema Inteligente</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --verde: #00E5A0;
+  --verde-escuro: #00A36C;
+  --verde-dim: rgba(0,229,160,0.12);
+  --bg: #060E0A;
+  --bg2: #0C1810;
+  --bg3: #111F17;
+  --card: #0E1C14;
+  --borda: rgba(0,229,160,0.15);
+  --borda2: rgba(0,229,160,0.08);
+  --texto: #E8F5EF;
+  --texto2: #7BA890;
+  --texto3: #4A6B58;
+  --amarelo: #FFD166;
+  --vermelho: #FF5C5C;
+  --azul: #5CB8FF;
+  --roxo: #A78BFA;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--texto);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,229,160,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,160,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
+body::after{content:'';position:fixed;top:-200px;left:50%;transform:translateX(-50%);width:800px;height:600px;background:radial-gradient(ellipse,rgba(0,229,160,0.06) 0%,transparent 70%);pointer-events:none;z-index:0}
+.wrapper{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:2rem 1.5rem 4rem}
+
+/* HEADER */
+.header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2.5rem;padding-bottom:2rem;border-bottom:1px solid var(--borda)}
+.logo-tag{font-family:'DM Mono',monospace;font-size:10px;color:var(--verde);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:8px;opacity:0.8}
+.logo{font-size:32px;font-weight:800;letter-spacing:-0.02em;line-height:1;background:linear-gradient(135deg,#fff 0%,var(--verde) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.logo span{background:linear-gradient(135deg,var(--verde) 0%,#00A36C 100%);-webkit-background-clip:text}
+.logo-sub{font-family:'DM Mono',monospace;font-size:11px;color:var(--texto2);margin-top:6px;letter-spacing:0.05em}
+.data-badge{font-family:'DM Mono',monospace;font-size:11px;color:var(--texto2);background:var(--card);border:1px solid var(--borda);padding:6px 14px;border-radius:100px;display:inline-block;margin-bottom:8px}
+.status-online{display:flex;align-items:center;gap:6px;justify-content:flex-end;font-family:'DM Mono',monospace;font-size:10px;color:var(--verde)}
+.status-online::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--verde);box-shadow:0 0 8px var(--verde);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
+/* UPLOAD ZONE */
+.upload-section{margin-bottom:2rem}
+.section-label{font-family:'DM Mono',monospace;font-size:10px;color:var(--verde);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:1rem;display:flex;align-items:center;gap:8px}
+.section-label::after{content:'';flex:1;height:1px;background:var(--borda)}
+
+.upload-zone{border:2px dashed var(--borda);border-radius:16px;padding:3rem 2rem;text-align:center;cursor:pointer;transition:all 0.3s;background:var(--verde-dim);position:relative;overflow:hidden}
+.upload-zone:hover,.upload-zone.dragover{border-color:var(--verde);background:rgba(0,229,160,0.15);transform:translateY(-2px);box-shadow:0 8px 40px rgba(0,229,160,0.15)}
+.upload-icon{font-size:48px;margin-bottom:16px;display:block}
+.upload-title{font-size:20px;font-weight:700;margin-bottom:8px}
+.upload-sub{font-family:'DM Mono',monospace;font-size:12px;color:var(--texto2);line-height:1.6}
+.upload-input{display:none}
+.upload-btn{display:inline-block;margin-top:20px;padding:12px 28px;background:var(--verde);color:var(--bg);border:none;border-radius:8px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;letter-spacing:0.05em}
+.upload-btn:hover{background:#00f0aa;transform:translateY(-1px);box-shadow:0 6px 20px rgba(0,229,160,0.3)}
+
+/* ARQUIVO SELECIONADO */
+.arquivo-info{display:none;background:var(--card);border:1px solid var(--borda);border-radius:12px;padding:16px 20px;margin-top:12px;display:none;align-items:center;gap:14px}
+.arquivo-icon{width:40px;height:40px;background:var(--verde-dim);border:1px solid var(--borda);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.arquivo-nome{font-family:'DM Mono',monospace;font-size:13px;font-weight:500}
+.arquivo-tamanho{font-family:'DM Mono',monospace;font-size:10px;color:var(--texto2);margin-top:2px}
+
+/* CONFIGURAÇÃO API */
+.api-config{background:var(--card);border:1px solid var(--borda2);border-radius:12px;padding:20px;margin-bottom:1.5rem}
+.api-config label{font-family:'DM Mono',monospace;font-size:10px;color:var(--texto2);letter-spacing:0.1em;text-transform:uppercase;display:block;margin-bottom:8px}
+.api-input-wrap{display:flex;gap:10px}
+.api-input{flex:1;background:var(--bg2);border:1px solid var(--borda);border-radius:8px;padding:10px 14px;color:var(--verde);font-family:'DM Mono',monospace;font-size:13px;outline:none;transition:all 0.2s}
+.api-input:focus{border-color:var(--verde);box-shadow:0 0 0 3px rgba(0,229,160,0.1)}
+.api-input::placeholder{color:var(--texto3)}
+.api-status{font-family:'DM Mono',monospace;font-size:10px;margin-top:8px}
+
+/* BOTÃO ANALISAR */
+.btn-analisar{width:100%;padding:16px;background:linear-gradient(135deg,var(--verde) 0%,var(--verde-escuro) 100%);color:var(--bg);border:none;border-radius:10px;font-family:'Syne',sans-serif;font-size:15px;font-weight:800;letter-spacing:0.05em;cursor:pointer;transition:all 0.2s;margin-bottom:2.5rem;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:10px}
+.btn-analisar:hover{transform:translateY(-2px);box-shadow:0 10px 40px rgba(0,229,160,0.3)}
+.btn-analisar:disabled{opacity:0.5;cursor:not-allowed;transform:none}
+
+/* LOADING */
+.loading{display:none;text-align:center;padding:3rem;background:var(--card);border:1px solid var(--borda);border-radius:16px;margin-bottom:2rem}
+.loading-spinner{width:48px;height:48px;border:3px solid var(--borda);border-top-color:var(--verde);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 20px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{font-family:'DM Mono',monospace;font-size:13px;color:var(--texto2)}
+.loading-steps{margin-top:16px;display:flex;flex-direction:column;gap:8px}
+.loading-step{font-family:'DM Mono',monospace;font-size:11px;color:var(--texto3);display:flex;align-items:center;gap:8px;justify-content:center}
+.loading-step.active{color:var(--verde)}
+.loading-step.done{color:var(--verde-escuro)}
+.step-dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
+
+/* RESULTADO */
+#resultado{display:none}
+
+/* STATUS BANNER */
+.status-banner{border-radius:12px;padding:16px 20px;display:flex;align-items:center;gap:14px;margin-bottom:1.5rem;border:1px solid transparent}
+.status-icon{font-size:28px;flex-shrink:0}
+.status-title{font-size:18px;font-weight:700;margin-bottom:2px}
+.status-desc{font-family:'DM Mono',monospace;font-size:11px;opacity:0.7}
+
+/* KPI GRID */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:1.5rem}
+.kpi{background:var(--card);border:1px solid var(--borda2);border-radius:12px;padding:16px;position:relative;overflow:hidden;transition:all 0.2s}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:2px 2px 0 0}
+.kpi.verde::before{background:var(--verde)}
+.kpi.amarelo::before{background:var(--amarelo)}
+.kpi.vermelho::before{background:var(--vermelho)}
+.kpi.azul::before{background:var(--azul)}
+.kpi.roxo::before{background:var(--roxo)}
+.kpi:hover{border-color:var(--borda);transform:translateY(-2px)}
+.kpi-label{font-family:'DM Mono',monospace;font-size:9px;color:var(--texto2);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:8px}
+.kpi-value{font-size:22px;font-weight:800;letter-spacing:-0.02em;margin-bottom:4px}
+.kpi-sub{font-family:'DM Mono',monospace;font-size:10px;color:var(--texto3)}
+
+/* GRID 2 COLUNAS */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.5rem}
+.card{background:var(--card);border:1px solid var(--borda2);border-radius:12px;padding:20px}
+.card-title{font-family:'DM Mono',monospace;font-size:10px;color:var(--verde);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:16px}
+
+/* BARRAS */
+.bar-item{margin-bottom:14px}
+.bar-header{display:flex;justify-content:space-between;font-family:'DM Mono',monospace;font-size:11px;color:var(--texto2);margin-bottom:6px}
+.bar-track{height:6px;background:var(--bg3);border-radius:99px;overflow:hidden}
+.bar-fill{height:100%;border-radius:99px;transition:width 1s cubic-bezier(0.4,0,0.2,1)}
+
+/* DONUT */
+.donut-wrap{position:relative;width:140px;height:140px;margin:0 auto 16px}
+.donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.donut-pct{font-size:22px;font-weight:800;letter-spacing:-0.02em}
+.donut-label{font-family:'DM Mono',monospace;font-size:9px;color:var(--texto2);letter-spacing:0.1em}
+.donut-legend{display:flex;flex-direction:column;gap:8px}
+.legend-item{display:flex;align-items:center;gap:8px;font-family:'DM Mono',monospace;font-size:11px;color:var(--texto2)}
+.legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.legend-val{margin-left:auto;color:var(--texto);font-weight:500}
+
+/* ALERTAS */
+.alertas{display:flex;flex-direction:column;gap:8px;margin-bottom:1.5rem}
+.alerta{display:flex;align-items:flex-start;gap:12px;padding:12px 16px;border-radius:10px;border:1px solid transparent;font-size:13px;line-height:1.5;transition:all 0.2s}
+.alerta:hover{transform:translateX(4px)}
+.alerta-icon{flex-shrink:0;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;margin-top:1px}
+
+/* DAS BOX */
+.das-box{background:linear-gradient(135deg,var(--verde-escuro) 0%,#005C3D 100%);border-radius:12px;padding:20px 24px;display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;border:1px solid rgba(0,229,160,0.3);position:relative;overflow:hidden}
+.das-box::before{content:'';position:absolute;right:-40px;top:-40px;width:150px;height:150px;border-radius:50%;background:rgba(0,229,160,0.08)}
+.das-label{font-family:'DM Mono',monospace;font-size:10px;color:rgba(255,255,255,0.6);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:4px}
+.das-value{font-size:28px;font-weight:800;color:#fff;letter-spacing:-0.02em}
+.das-info{font-family:'DM Mono',monospace;font-size:10px;color:rgba(255,255,255,0.5);margin-top:4px}
+
+/* TABS */
+.tabs{display:flex;gap:4px;background:var(--card);border:1px solid var(--borda2);border-radius:10px;padding:4px;margin-bottom:1.5rem;overflow-x:auto}
+.tab{flex:1;min-width:fit-content;padding:8px 16px;border-radius:7px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.05em;cursor:pointer;transition:all 0.2s;color:var(--texto2);border:none;background:transparent;white-space:nowrap}
+.tab.active{background:var(--verde-dim);color:var(--verde);border:1px solid var(--borda)}
+.tab-content{display:none}
+.tab-content.active{display:block}
+
+/* LANÇAMENTOS */
+.lanc-header{display:grid;grid-template-columns:90px 1fr 130px 90px 110px;gap:8px;padding:8px 12px;font-family:'DM Mono',monospace;font-size:10px;color:var(--texto3);letter-spacing:0.1em;text-transform:uppercase;border-bottom:1px solid var(--borda2);margin-bottom:4px}
+.lanc-row{display:grid;grid-template-columns:90px 1fr 130px 90px 110px;gap:8px;padding:10px 12px;border-radius:7px;font-family:'DM Mono',monospace;font-size:12px;transition:background 0.15s;border:1px solid transparent}
+.lanc-row:hover{background:var(--bg2);border-color:var(--borda2)}
+.tipo-entrada{color:var(--verde)}
+.tipo-saida{color:var(--vermelho)}
+.lanc-totais{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.lanc-total-item{background:var(--bg2);border-radius:8px;padding:12px 14px;border:1px solid var(--borda2)}
+.lanc-total-label{font-family:'DM Mono',monospace;font-size:10px;color:var(--texto2);margin-bottom:4px}
+.lanc-total-value{font-size:18px;font-weight:800}
+
+/* DRE */
+.dre-item{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-radius:8px;margin-bottom:6px;font-size:13px}
+.dre-label{font-weight:600}
+.dre-value{font-family:'DM Mono',monospace;font-size:14px;font-weight:700}
+.dre-separator{height:1px;background:var(--borda);margin:8px 0}
+
+/* LAUDO */
+.laudo-output{background:var(--bg2);border:1px solid var(--borda2);border-radius:8px;padding:20px;font-family:'DM Mono',monospace;font-size:12px;line-height:1.9;color:var(--texto2);white-space:pre-wrap;min-height:200px}
+
+/* CALENDÁRIO */
+.cal-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
+.cal-item{background:var(--bg2);border:1px solid var(--borda2);border-radius:8px;padding:12px;transition:all 0.2s}
+.cal-item:hover{border-color:var(--borda)}
+.cal-mes{font-size:13px;font-weight:700;margin-bottom:4px}
+.cal-venc{font-family:'DM Mono',monospace;font-size:10px;color:var(--texto2);margin-bottom:8px}
+.cal-das{font-family:'DM Mono',monospace;font-size:11px;color:var(--texto2);margin-bottom:8px}
+.cal-status{font-family:'DM Mono',monospace;font-size:10px;padding:3px 8px;border-radius:4px;display:inline-block;cursor:pointer}
+.cal-status.pendente{background:rgba(255,209,102,0.15);color:var(--amarelo);border:1px solid rgba(255,209,102,0.3)}
+.cal-status.pago{background:rgba(0,229,160,0.12);color:var(--verde);border:1px solid rgba(0,229,160,0.3)}
+.cal-status.atraso{background:rgba(255,92,92,0.12);color:var(--vermelho);border:1px solid rgba(255,92,92,0.3)}
+
+/* ANIMAÇÕES */
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.animate{animation:fadeUp 0.4s ease forwards}
+.d1{animation-delay:0.05s}.d2{animation-delay:0.1s}.d3{animation-delay:0.15s}.d4{animation-delay:0.2s}.d5{animation-delay:0.25s}
+
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--borda);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--verde)}
+
+@media(max-width:640px){
+  .grid2{grid-template-columns:1fr}
+  .lanc-header,.lanc-row{grid-template-columns:80px 1fr 90px}
+  .lanc-header span:nth-child(3),.lanc-row span:nth-child(3),
+  .lanc-header span:nth-child(5),.lanc-row span:nth-child(5){display:none}
+  .das-box{flex-direction:column;gap:12px;text-align:center}
+  .header{flex-direction:column;gap:12px}
+  .api-input-wrap{flex-direction:column}
+}
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div>
+      <div class="logo-tag">// sistema de gestão financeira inteligente</div>
+      <div class="logo">Gestão MEI<span> Pro X</span></div>
+      <div class="logo-sub">Análise automática por Inteligência Artificial</div>
+    </div>
+    <div style="text-align:right">
+      <div class="data-badge" id="data-atual">carregando...</div>
+      <div class="status-online">sistema ativo</div>
+    </div>
+  </div>
+
+  <!-- CONFIGURAÇÃO API -->
+  <div class="section-label">Configuração</div>
+  <div class="api-config">
+    <label>Chave API Anthropic (Claude)</label>
+    <div class="api-input-wrap">
+      <input type="password" class="api-input" id="chave-api" placeholder="sk-ant-api03-..." oninput="verificarChave()">
+    </div>
+    <div class="api-status" id="api-status" style="color:var(--texto3)">
+      🔑 Insira sua chave API para ativar a análise com IA
+    </div>
+  </div>
+
+  <!-- UPLOAD EXTRATO -->
+  <div class="section-label">Extrato bancário</div>
+  <div class="upload-section">
+    <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event)">
+      <span class="upload-icon">📄</span>
+      <div class="upload-title">Envie seu extrato bancário</div>
+      <div class="upload-sub">
+        Arraste o arquivo PDF ou clique para selecionar<br>
+        Também aceita arquivos .txt ou .csv<br>
+        <span style="color:var(--verde)">A IA vai ler e classificar tudo automaticamente</span>
+      </div>
+      <button class="upload-btn" onclick="event.stopPropagation();document.getElementById('file-input').click()">
+        📂 Selecionar Arquivo
+      </button>
+      <input type="file" id="file-input" class="upload-input" accept=".pdf,.txt,.csv" onchange="selecionarArquivo(event)">
+    </div>
+
+    <div class="arquivo-info" id="arquivo-info">
+      <div class="arquivo-icon">📄</div>
+      <div>
+        <div class="arquivo-nome" id="arquivo-nome">—</div>
+        <div class="arquivo-tamanho" id="arquivo-tamanho">—</div>
+      </div>
+      <button onclick="limparArquivo()" style="margin-left:auto;background:rgba(255,92,92,0.1);border:1px solid rgba(255,92,92,0.2);color:var(--vermelho);padding:6px 12px;border-radius:6px;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer">✕ Remover</button>
+    </div>
+  </div>
+
+  <!-- BOTÃO ANALISAR -->
+  <button class="btn-analisar" id="btn-analisar" onclick="analisarExtrato()" disabled>
+    🤖 Analisar Extrato com IA
+  </button>
+
+  <!-- LOADING -->
+  <div class="loading" id="loading">
+    <div class="loading-spinner"></div>
+    <div class="loading-text" id="loading-text">Inicializando análise...</div>
+    <div class="loading-steps">
+      <div class="loading-step" id="step-1"><div class="step-dot"></div>Lendo o extrato bancário</div>
+      <div class="loading-step" id="step-2"><div class="step-dot"></div>Identificando transações</div>
+      <div class="loading-step" id="step-3"><div class="step-dot"></div>Classificando receitas e despesas</div>
+      <div class="loading-step" id="step-4"><div class="step-dot"></div>Calculando DRE e indicadores</div>
+      <div class="loading-step" id="step-5"><div class="step-dot"></div>Gerando diagnóstico e laudo</div>
+    </div>
+  </div>
+
+  <!-- RESULTADO -->
+  <div id="resultado">
+
+    <!-- STATUS BANNER -->
+    <div class="status-banner animate d1" id="status-banner">
+      <div class="status-icon" id="status-icon">🟢</div>
+      <div class="status-content">
+        <div class="status-title" id="status-title">—</div>
+        <div class="status-desc" id="status-desc">—</div>
+      </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpi-grid animate d2">
+      <div class="kpi verde">
+        <div class="kpi-label">Receita Bruta</div>
+        <div class="kpi-value" id="k-receita" style="color:var(--verde)">—</div>
+        <div class="kpi-sub" id="k-receita-qtd">Total do período</div>
+      </div>
+      <div class="kpi vermelho">
+        <div class="kpi-label">Total Despesas</div>
+        <div class="kpi-value" id="k-despesas" style="color:var(--vermelho)">—</div>
+        <div class="kpi-sub" id="k-despesas-qtd">Total do período</div>
+      </div>
+      <div class="kpi verde">
+        <div class="kpi-label">Lucro Líquido</div>
+        <div class="kpi-value" id="k-lucro" style="color:var(--verde)">—</div>
+        <div class="kpi-sub">Receita - Despesas</div>
+      </div>
+      <div class="kpi azul">
+        <div class="kpi-label">Margem de Lucro</div>
+        <div class="kpi-value" id="k-margem" style="color:var(--azul)">—</div>
+        <div class="kpi-sub">Meta: 30% ou mais</div>
+      </div>
+      <div class="kpi amarelo">
+        <div class="kpi-label">DAS Estimado</div>
+        <div class="kpi-value" id="k-das" style="color:var(--amarelo)">—</div>
+        <div class="kpi-sub">Vence todo dia 20</div>
+      </div>
+      <div class="kpi roxo">
+        <div class="kpi-label">Mistura PF/PJ</div>
+        <div class="kpi-value" id="k-pf" style="color:var(--roxo)">—</div>
+        <div class="kpi-sub">Ideal: R$ 0,00</div>
+      </div>
+    </div>
+
+    <!-- INDICADORES + DONUT -->
+    <div class="grid2 animate d3">
+      <div class="card">
+        <div class="card-title">// indicadores de saúde financeira</div>
+        <div class="bar-item">
+          <div class="bar-header"><span>Margem de lucro</span><span id="b-margem">0%</span></div>
+          <div class="bar-track"><div class="bar-fill" id="bf-margem" style="width:0%"></div></div>
+        </div>
+        <div class="bar-item">
+          <div class="bar-header"><span>Despesas vs receita</span><span id="b-desp">0%</span></div>
+          <div class="bar-track"><div class="bar-fill" id="bf-desp" style="width:0%"></div></div>
+        </div>
+        <div class="bar-item">
+          <div class="bar-header"><span>Gastos PF na conta PJ</span><span id="b-pf">0%</span></div>
+          <div class="bar-track"><div class="bar-fill" id="bf-pf" style="width:0%"></div></div>
+        </div>
+        <div class="bar-item" style="margin-bottom:0">
+          <div class="bar-header"><span>Limite MEI anual</span><span id="b-limite">0%</span></div>
+          <div class="bar-track"><div class="bar-fill" id="bf-limite" style="width:0%"></div></div>
+        </div>
+      </div>
+
+      <div class="card" style="display:flex;flex-direction:column;align-items:center;justify-content:center">
+        <div class="card-title" style="align-self:flex-start">// distribuição financeira</div>
+        <div class="donut-wrap">
+          <canvas id="donutCanvas" width="140" height="140"></canvas>
+          <div class="donut-center">
+            <div class="donut-pct" id="donut-pct">0%</div>
+            <div class="donut-label">lucro</div>
+          </div>
+        </div>
+        <div class="donut-legend" id="donut-legend"></div>
+      </div>
+    </div>
+
+    <!-- ALERTAS -->
+    <div class="section-label animate d4">Alertas inteligentes</div>
+    <div class="alertas animate d4" id="alertas-list"></div>
+
+    <!-- DAS BOX -->
+    <div class="das-box animate d5">
+      <div>
+        <div class="das-label">📅 DAS do mês — vence dia 20</div>
+        <div class="das-value" id="das-valor">R$ 0,00</div>
+        <div class="das-info">Não pague em atraso! Multa de 0,33% ao dia + juros SELIC</div>
+      </div>
+    </div>
+
+    <!-- ABAS -->
+    <div class="tabs animate d5">
+      <button class="tab active" onclick="abrirTab('lancamentos',this)">💰 Lançamentos</button>
+      <button class="tab" onclick="abrirTab('dre',this)">📈 DRE</button>
+      <button class="tab" onclick="abrirTab('calendario',this)">📅 Calendário Fiscal</button>
+      <button class="tab" onclick="abrirTab('laudo',this)">🤖 Laudo IA</button>
+    </div>
+
+    <!-- TAB LANÇAMENTOS -->
+    <div id="tab-lancamentos" class="tab-content active card">
+      <div class="card-title">// lançamentos identificados pela IA</div>
+      <div class="lanc-totais">
+        <div class="lanc-total-item">
+          <div class="lanc-total-label">Total Entradas</div>
+          <div class="lanc-total-value" id="lt-entrada" style="color:var(--verde)">R$ 0</div>
+        </div>
+        <div class="lanc-total-item">
+          <div class="lanc-total-label">Total Saídas</div>
+          <div class="lanc-total-value" id="lt-saida" style="color:var(--vermelho)">R$ 0</div>
+        </div>
+        <div class="lanc-total-item">
+          <div class="lanc-total-label">Saldo do Período</div>
+          <div class="lanc-total-value" id="lt-saldo" style="color:var(--azul)">R$ 0</div>
+        </div>
+      </div>
+      <div class="lanc-header">
+        <span>Data</span><span>Descrição</span><span>Categoria</span><span>Tipo</span><span>Valor</span>
+      </div>
+      <div id="lanc-lista"></div>
+    </div>
+
+    <!-- TAB DRE -->
+    <div id="tab-dre" class="tab-content card">
+      <div class="card-title">// demonstração do resultado do exercício</div>
+      <div id="dre-content"></div>
+    </div>
+
+    <!-- TAB CALENDÁRIO -->
+    <div id="tab-calendario" class="tab-content card">
+      <div class="card-title">// calendário fiscal — DAS mensal</div>
+      <div style="background:rgba(255,209,102,0.08);border:1px solid rgba(255,209,102,0.2);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-family:'DM Mono',monospace;font-size:11px;color:var(--amarelo)">
+        ⚠️ Atraso no DAS gera multa de 0,33% ao dia + juros SELIC. Pague sempre até o dia 20.
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
+    </div>
+
+    <!-- TAB LAUDO -->
+    <div id="tab-laudo" class="tab-content card">
+      <div class="card-title">// laudo financeiro completo — IA</div>
+      <div class="laudo-output" id="laudo-output">O laudo será gerado automaticamente após a análise do extrato.</div>
+    </div>
+
+  </div><!-- fim resultado -->
+</div>
+
+<script>
+var dadosAnalise = {};
+var lancamentos = [];
+var calStatus = {};
+var arquivoTexto = "";
+
+// DATA
+function atualizarData(){
+  var d=new Date();
+  var m=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+  document.getElementById("data-atual").textContent=d.getDate()+" "+m[d.getMonth()]+" "+d.getFullYear();
+}
+atualizarData();
+
+// FORMATOS
+function fmt(v){return "R$ "+Number(v).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2})}
+function fmtPct(v){return Number(v).toFixed(1)+"%"}
+
+// VERIFICAR CHAVE
+function verificarChave(){
+  var chave=document.getElementById("chave-api").value.trim();
+  var status=document.getElementById("api-status");
+  var btn=document.getElementById("btn-analisar");
+  if(chave.startsWith("sk-ant-")){
+    status.style.color="var(--verde)";
+    status.textContent="✅ Chave API configurada e pronta";
+    verificarBotao();
+  } else if(chave.length>0){
+    status.style.color="var(--amarelo)";
+    status.textContent="⚠️ Chave inválida — deve começar com sk-ant-";
+    btn.disabled=true;
+  } else {
+    status.style.color="var(--texto3)";
+    status.textContent="🔑 Insira sua chave API para ativar a análise com IA";
+    btn.disabled=true;
+  }
+}
+
+function verificarBotao(){
+  var chave=document.getElementById("chave-api").value.trim();
+  var btn=document.getElementById("btn-analisar");
+  btn.disabled=!(chave.startsWith("sk-ant-") && arquivoTexto);
+}
+
+// DRAG & DROP
+function dragOver(e){e.preventDefault();document.getElementById("upload-zone").classList.add("dragover")}
+function dragLeave(e){document.getElementById("upload-zone").classList.remove("dragover")}
+function dropFile(e){
+  e.preventDefault();
+  document.getElementById("upload-zone").classList.remove("dragover");
+  var files=e.dataTransfer.files;
+  if(files.length>0) processarArquivo(files[0]);
+}
+
+function selecionarArquivo(e){
+  if(e.target.files.length>0) processarArquivo(e.target.files[0]);
+}
+
+function processarArquivo(file){
+  document.getElementById("arquivo-nome").textContent=file.name;
+  document.getElementById("arquivo-tamanho").textContent=(file.size/1024).toFixed(1)+" KB";
+  document.getElementById("arquivo-info").style.display="flex";
+
+  var reader=new FileReader();
+  reader.onload=function(e){
+    arquivoTexto=e.target.result;
+    verificarBotao();
+  };
+  if(file.name.endsWith(".pdf")){
+    // Para PDF lemos como texto (extrai texto visível)
+    reader.readAsText(file);
+  } else {
+    reader.readAsText(file,"UTF-8");
+  }
+}
+
+function limparArquivo(){
+  arquivoTexto="";
+  document.getElementById("arquivo-info").style.display="none";
+  document.getElementById("file-input").value="";
+  verificarBotao();
+}
+
+// ANIMAR STEPS
+function animarStep(num){
+  for(var i=1;i<=5;i++){
+    var el=document.getElementById("step-"+i);
+    if(i<num) el.className="loading-step done";
+    else if(i===num) el.className="loading-step active";
+    else el.className="loading-step";
+  }
+}
+
+// ANALISAR EXTRATO COM IA
+async function analisarExtrato(){
+  var chave=document.getElementById("chave-api").value.trim();
+  if(!chave||!arquivoTexto){return;}
+
+  // Mostra loading, esconde resultado
+  document.getElementById("loading").style.display="block";
+  document.getElementById("resultado").style.display="none";
+  document.getElementById("btn-analisar").disabled=true;
+  document.getElementById("loading-text").textContent="Iniciando análise com IA...";
+
+  var steps=[
+    "Lendo o extrato bancário...",
+    "Identificando todas as transações...",
+    "Classificando receitas e despesas...",
+    "Calculando DRE e indicadores financeiros...",
+    "Gerando diagnóstico e laudo completo..."
+  ];
+
+  // Anima os steps com delay
+  for(var i=1;i<=5;i++){
+    await new Promise(r=>setTimeout(r,800));
+    animarStep(i);
+    document.getElementById("loading-text").textContent=steps[i-1];
+  }
+
+  try {
+    var prompt = `Você é um contador especialista em MEI brasileiro. Analise o extrato bancário abaixo e retorne um JSON completo com TODOS os dados financeiros.
+
+EXTRATO BANCÁRIO:
+${arquivoTexto.substring(0, 8000)}
+
+Retorne APENAS um JSON válido (sem markdown, sem explicações) com esta estrutura exata:
+{
+  "periodo": "Mês/Ano identificado",
+  "nome_empresa": "Nome ou CNPJ identificado (ou 'MEI' se não encontrado)",
+  "receita_bruta": 0.00,
+  "total_despesas": 0.00,
+  "gastos_pf": 0.00,
+  "lancamentos": [
+    {
+      "data": "DD/MM/AAAA",
+      "descricao": "Descrição da transação",
+      "categoria": "Receita de Serviços|Receita de Vendas|Aluguel|Telefone/Internet|Material|Transporte|Alimentação|Impostos/DAS|Marketing|Pessoal (PF)|Outros",
+      "tipo": "Entrada|Saída|Transferência PF",
+      "valor": 0.00
+    }
+  ],
+  "resumo_categorias": {
+    "Receita de Serviços": 0.00,
+    "Receita de Vendas": 0.00,
+    "Aluguel": 0.00,
+    "Telefone/Internet": 0.00,
+    "Material": 0.00,
+    "Transporte": 0.00,
+    "Alimentação": 0.00,
+    "Impostos/DAS": 0.00,
+    "Marketing": 0.00,
+    "Pessoal (PF)": 0.00,
+    "Outros": 0.00
+  },
+  "alertas_ia": [
+    "Alerta ou observação importante identificada no extrato"
+  ],
+  "laudo": "Laudo financeiro completo em português simples, com emojis, análise detalhada dos indicadores, pontos de atenção e recomendações práticas para o MEI melhorar suas finanças. Mínimo 300 palavras."
+}`;
+
+    var resp = await fetch("/api/claude", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": chave,
+        "anthropic-version": "2023-06-01"
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-5",
+        max_tokens: 4000,
+        messages: [{role:"user", content: prompt}]
+      })
+    });
+
+    var data = await resp.json();
+
+    if(data.error){
+      throw new Error(data.error.message);
+    }
+
+    var textoResposta = data.content[0].text;
+
+    // Extrai JSON da resposta
+    var jsonMatch = textoResposta.match(/\{[\s\S]*\}/);
+    if(!jsonMatch) throw new Error("IA não retornou JSON válido");
+
+    var analise = JSON.parse(jsonMatch[0]);
+
+    // Esconde loading, mostra resultado
+    document.getElementById("loading").style.display="none";
+    document.getElementById("btn-analisar").disabled=false;
+
+    // Renderiza tudo
+    renderizarResultado(analise);
+
+  } catch(e) {
+    document.getElementById("loading").style.display="none";
+    document.getElementById("btn-analisar").disabled=false;
+    alert("❌ Erro na análise: " + e.message + "\n\nVerifique sua chave API e tente novamente.");
+  }
+}
+
+// RENDERIZAR RESULTADO COMPLETO
+function renderizarResultado(d){
+  dadosAnalise = d;
+  lancamentos = d.lancamentos || [];
+
+  var receita = d.receita_bruta || 0;
+  var despesas = d.total_despesas || 0;
+  var pf = d.gastos_pf || 0;
+  var lucro = receita - despesas;
+  var margem = receita > 0 ? (lucro/receita)*100 : 0;
+  var das = receita * 0.06;
+  var despPct = receita > 0 ? (despesas/receita)*100 : 0;
+  var pfPct = receita > 0 ? (pf/receita)*100 : 0;
+
+  document.getElementById("resultado").style.display="block";
+  document.getElementById("resultado").scrollIntoView({behavior:"smooth",block:"start"});
+
+  // KPIs
+  document.getElementById("k-receita").textContent=fmt(receita);
+  document.getElementById("k-despesas").textContent=fmt(despesas);
+  document.getElementById("k-lucro").textContent=fmt(lucro);
+  document.getElementById("k-lucro").style.color=lucro>=0?"var(--verde)":"var(--vermelho)";
+  document.getElementById("k-margem").textContent=fmtPct(margem);
+  document.getElementById("k-margem").style.color=margem>=30?"var(--verde)":margem>=15?"var(--amarelo)":"var(--vermelho)";
+  document.getElementById("k-das").textContent=fmt(das);
+  document.getElementById("k-pf").textContent=fmt(pf);
+  document.getElementById("k-pf").style.color=pf===0?"var(--verde)":"var(--vermelho)";
+  document.getElementById("das-valor").textContent=fmt(das);
+
+  // Status
+  var score=(margem>=30?1:0)+(pf===0?1:0)+(despPct<70?1:0);
+  var sb=document.getElementById("status-banner");
+  if(score===3){
+    sb.style.background="rgba(0,229,160,0.08)";sb.style.borderColor="rgba(0,229,160,0.3)";
+    document.getElementById("status-icon").textContent="🟢";
+    document.getElementById("status-title").textContent="Negócio Saudável — "+d.nome_empresa;
+    document.getElementById("status-title").style.color="var(--verde)";
+    document.getElementById("status-desc").textContent="Todos os indicadores dentro do esperado para o período "+d.periodo;
+  } else if(score>=1){
+    sb.style.background="rgba(255,209,102,0.08)";sb.style.borderColor="rgba(255,209,102,0.3)";
+    document.getElementById("status-icon").textContent="🟡";
+    document.getElementById("status-title").textContent="Atenção Necessária — "+d.nome_empresa;
+    document.getElementById("status-title").style.color="var(--amarelo)";
+    document.getElementById("status-desc").textContent="Há pontos que precisam de atenção no período "+d.periodo;
+  } else {
+    sb.style.background="rgba(255,92,92,0.08)";sb.style.borderColor="rgba(255,92,92,0.3)";
+    document.getElementById("status-icon").textContent="🔴";
+    document.getElementById("status-title").textContent="Situação Crítica — "+d.nome_empresa;
+    document.getElementById("status-title").style.color="var(--vermelho)";
+    document.getElementById("status-desc").textContent="Ação imediata necessária! Análise do período "+d.periodo;
+  }
+
+  // Barras
+  setBar("margem",Math.min(margem,100),margem>=30?"var(--verde)":margem>=15?"var(--amarelo)":"var(--vermelho)");
+  setBar("desp",Math.min(despPct,100),despPct<60?"var(--azul)":despPct<80?"var(--amarelo)":"var(--vermelho)");
+  setBar("pf",Math.min(pfPct,100),pf===0?"var(--verde)":pfPct<10?"var(--amarelo)":"var(--vermelho)");
+  setBar("limite",0,"var(--roxo)");
+
+  // Donut
+  desenharDonut(Math.max(lucro,0),despesas,das,margem);
+
+  // Alertas
+  renderAlertas(margem,pf,despPct,lucro,d.alertas_ia||[]);
+
+  // Lançamentos
+  renderLancamentos();
+
+  // DRE
+  renderDRE(receita,despesas,pf,das,lucro,margem,d.resumo_categorias||{});
+
+  // Calendário
+  renderCalendario(das);
+
+  // Laudo
+  document.getElementById("laudo-output").textContent=d.laudo||"Laudo não gerado.";
+}
+
+function setBar(id,pct,color){
+  document.getElementById("b-"+id).textContent=fmtPct(pct);
+  var el=document.getElementById("bf-"+id);
+  el.style.width=pct+"%";
+  el.style.background=color;
+}
+
+// DONUT
+function desenharDonut(lucro,desp,das,margem){
+  var canvas=document.getElementById("donutCanvas");
+  var ctx=canvas.getContext("2d");
+  var cx=70,cy=70,r=55,inner=35;
+  ctx.clearRect(0,0,140,140);
+  var total=lucro+desp+das;
+  if(total===0){
+    ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);
+    ctx.strokeStyle="rgba(0,229,160,0.1)";ctx.lineWidth=r-inner;ctx.stroke();
+  } else {
+    var segs=[{val:Math.max(lucro,0),color:"#00E5A0"},{val:desp,color:"#FF5C5C"},{val:das,color:"#A78BFA"}];
+    var start=-Math.PI/2;
+    segs.forEach(function(s){
+      if(s.val<=0)return;
+      var ang=(s.val/total)*Math.PI*2;
+      ctx.beginPath();ctx.arc(cx,cy,(r+inner)/2,start,start+ang);
+      ctx.strokeStyle=s.color;ctx.lineWidth=r-inner;ctx.stroke();
+      start+=ang;
+    });
+  }
+  document.getElementById("donut-pct").textContent=margem.toFixed(1)+"%";
+  document.getElementById("donut-pct").style.color=margem>=30?"var(--verde)":margem>=15?"var(--amarelo)":"var(--vermelho)";
+  document.getElementById("donut-legend").innerHTML=
+    '<div class="legend-item"><div class="legend-dot" style="background:#00E5A0"></div><span>Lucro</span><span class="legend-val">'+fmt(Math.max(lucro,0))+'</span></div>'+
+    '<div class="legend-item"><div class="legend-dot" style="background:#FF5C5C"></div><span>Despesas</span><span class="legend-val">'+fmt(desp)+'</span></div>'+
+    '<div class="legend-item"><div class="legend-dot" style="background:#A78BFA"></div><span>Impostos</span><span class="legend-val">'+fmt(das)+'</span></div>';
+}
+
+// ALERTAS
+function renderAlertas(margem,pf,despPct,lucro,alertasIA){
+  var alertas=[];
+  if(margem>=30) alertas.push({cor:"#00E5A0",bg:"rgba(0,229,160,0.06)",borda:"rgba(0,229,160,0.2)",icon:"✓",msg:"Margem de "+margem.toFixed(1)+"% — Meta de 30% atingida! Seu negócio está bem precificado."});
+  else if(margem>=15) alertas.push({cor:"#FFD166",bg:"rgba(255,209,102,0.06)",borda:"rgba(255,209,102,0.2)",icon:"!",msg:"Margem de "+margem.toFixed(1)+"% — Abaixo do ideal. Revise sua precificação para atingir 30%."});
+  else alertas.push({cor:"#FF5C5C",bg:"rgba(255,92,92,0.06)",borda:"rgba(255,92,92,0.2)",icon:"✕",msg:"Margem crítica: "+margem.toFixed(1)+"% — Você pode estar vendendo no prejuízo! Ação urgente necessária."});
+
+  if(pf===0) alertas.push({cor:"#00E5A0",bg:"rgba(0,229,160,0.06)",borda:"rgba(0,229,160,0.2)",icon:"✓",msg:"Separação PF/PJ perfeita! Nenhum gasto pessoal identificado na conta empresarial."});
+  else alertas.push({cor:"#FF5C5C",bg:"rgba(255,92,92,0.06)",borda:"rgba(255,92,92,0.2)",icon:"✕",msg:fmt(pf)+" de gastos pessoais detectados na conta PJ. Isso prejudica o controle financeiro."});
+
+  if(lucro>=0) alertas.push({cor:"#00E5A0",bg:"rgba(0,229,160,0.06)",borda:"rgba(0,229,160,0.2)",icon:"✓",msg:"Resultado positivo: "+fmt(lucro)+" de lucro no período. Continue controlando as despesas!"});
+  else alertas.push({cor:"#FF5C5C",bg:"rgba(255,92,92,0.06)",borda:"rgba(255,92,92,0.2)",icon:"✕",msg:"PREJUÍZO de "+fmt(Math.abs(lucro))+"! Corte despesas imediatamente e revise a precificação."});
+
+  // Alertas da IA
+  alertasIA.forEach(function(a){
+    alertas.push({cor:"#5CB8FF",bg:"rgba(92,184,255,0.06)",borda:"rgba(92,184,255,0.2)",icon:"i",msg:"🤖 IA: "+a});
+  });
+
+  document.getElementById("alertas-list").innerHTML=alertas.map(function(a){
+    return '<div class="alerta" style="background:'+a.bg+';border-color:'+a.borda+'">'+
+      '<div class="alerta-icon" style="background:'+a.bg+';border:1px solid '+a.borda+';color:'+a.cor+'">'+a.icon+'</div>'+
+      '<span>'+a.msg+'</span></div>';
+  }).join("");
+}
+
+// LANÇAMENTOS
+function renderLancamentos(){
+  var entrada=0,saida=0;
+  lancamentos.forEach(function(l){
+    if(l.tipo==="Entrada") entrada+=l.valor;
+    else saida+=l.valor;
+  });
+  document.getElementById("lt-entrada").textContent=fmt(entrada);
+  document.getElementById("lt-saida").textContent=fmt(saida);
+  document.getElementById("lt-saldo").textContent=fmt(entrada-saida);
+  document.getElementById("lt-saldo").style.color=(entrada-saida)>=0?"var(--verde)":"var(--vermelho)";
+
+  if(lancamentos.length===0){
+    document.getElementById("lanc-lista").innerHTML='<div style="padding:20px;font-family:\'DM Mono\',monospace;font-size:12px;color:var(--texto3);text-align:center">Nenhum lançamento identificado</div>';
+    return;
+  }
+
+  document.getElementById("lanc-lista").innerHTML=lancamentos.map(function(l){
+    var isSaida=l.tipo!=="Entrada";
+    return '<div class="lanc-row">'+
+      '<span style="color:var(--texto2)">'+l.data+'</span>'+
+      '<span>'+l.descricao+'</span>'+
+      '<span style="color:var(--texto2)">'+l.categoria+'</span>'+
+      '<span class="'+(isSaida?"tipo-saida":"tipo-entrada")+'">'+l.tipo+'</span>'+
+      '<span style="color:'+(isSaida?"var(--vermelho)":"var(--verde)")+';font-weight:700">'+(isSaida?"- ":"+ ")+fmt(l.valor)+'</span>'+
+      '</div>';
+  }).join("");
+}
+
+// DRE
+function renderDRE(receita,despesas,pf,das,lucro,margem,cats){
+  var itens=[
+    {label:"RECEITA BRUTA",val:receita,bg:"rgba(0,229,160,0.08)",cor:"var(--verde)",bold:true},
+    {label:"(-) Impostos / DAS (6%)",val:-das,bg:"rgba(255,92,92,0.06)",cor:"var(--vermelho)",bold:false},
+    {label:"= RECEITA LÍQUIDA",val:receita-das,bg:"rgba(92,184,255,0.08)",cor:"var(--azul)",bold:true},
+    {label:"(-) Custos Operacionais",val:-(despesas-pf),bg:"rgba(255,92,92,0.06)",cor:"var(--vermelho)",bold:false},
+    {label:"(-) Gastos Pessoais (PF)",val:-pf,bg:"rgba(255,209,102,0.06)",cor:"var(--amarelo)",bold:false},
+    {label:"= LUCRO LÍQUIDO",val:lucro,bg:lucro>=0?"rgba(0,229,160,0.1)":"rgba(255,92,92,0.1)",cor:lucro>=0?"var(--verde)":"var(--vermelho)",bold:true},
+    {label:"MARGEM DE LUCRO (%)",val:margem,bg:"rgba(167,139,250,0.08)",cor:"var(--roxo)",bold:true,pct:true}
+  ];
+
+  var html=itens.map(function(item){
+    return '<div class="dre-item" style="background:'+item.bg+'">'+
+      '<span class="dre-label" style="color:'+item.cor+';font-weight:'+(item.bold?"700":"400")+'">'+item.label+'</span>'+
+      '<span class="dre-value" style="color:'+item.cor+'">'+
+      (item.pct?fmtPct(item.val):fmt(item.val))+'</span></div>';
+  }).join("");
+
+  // Breakdown por categoria
+  if(Object.keys(cats).length>0){
+    html+='<div style="margin-top:20px"><div class="card-title">// despesas por categoria</div>';
+    Object.keys(cats).forEach(function(cat){
+      if(cats[cat]>0){
+        html+='<div class="dre-item" style="background:var(--bg2)">'+
+          '<span style="color:var(--texto2);font-size:12px;font-family:\'DM Mono\',monospace">'+cat+'</span>'+
+          '<span style="color:var(--texto);font-family:\'DM Mono\',monospace;font-size:12px">'+fmt(cats[cat])+'</span></div>';
+      }
+    });
+    html+='</div>';
+  }
+
+  document.getElementById("dre-content").innerHTML=html;
+}
+
+// CALENDÁRIO
+function renderCalendario(das){
+  var meses=["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+  var ano=new Date().getFullYear();
+  document.getElementById("cal-grid").innerHTML=meses.map(function(m,i){
+    var key=m+"-"+ano;
+    var status=calStatus[key]||"pendente";
+    var statusLabel=status==="pago"?"Pago":status==="atraso"?"Em atraso":"Pendente";
+    return '<div class="cal-item">'+
+      '<div class="cal-mes">'+m+'</div>'+
+      '<div class="cal-venc">Vence: 20/'+String(i+1).padStart(2,"0")+'/'+ano+'</div>'+
+      '<div class="cal-das">'+(das>0?fmt(das):"—")+'</div>'+
+      '<span class="cal-status '+status+'" onclick="toggleStatus(\''+key+'\')">'+statusLabel+'</span>'+
+      '</div>';
+  }).join("");
+}
+
+function toggleStatus(key){
+  var ordem=["pendente","pago","atraso"];
+  calStatus[key]=ordem[(ordem.indexOf(calStatus[key]||"pendente")+1)%3];
+  renderCalendario(dadosAnalise.receita_bruta?dadosAnalise.receita_bruta*0.06:0);
+}
+
+// TABS
+function abrirTab(id,btn){
+  document.querySelectorAll(".tab-content").forEach(function(el){el.classList.remove("active")});
+  document.querySelectorAll(".tab").forEach(function(el){el.classList.remove("active")});
+  document.getElementById("tab-"+id).classList.add("active");
+  btn.classList.add("active");
+}
+</script>
+</body>
+</html>
